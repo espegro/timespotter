@@ -1,7 +1,7 @@
 # timespotter
 First seen / last seen web service based on sha256
 
-Values is stored in memory, saved to disk with SIGUP or /save API call.
+Values is stored in memory, saved to disk with SIGHUP or /save API call.
 Keep track of hash value, first seen, last seen and count.
 
 
