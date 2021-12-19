@@ -8,12 +8,12 @@ Keep track of hash value, first seen, last seen and count.
 # API
 
 ## POST
-* /seen/value/\<value\>      - add <value> to seen map
-* /seen/hash/\<hash\>       - add <hash> to seen map
+* /seen/value/\<value\>      - add <value> (string) to seen map
+* /seen/hash/\<hash\>       - add <hash> (sha256) to seen map
 * /post/value              - add vaules in post to seen map, one value pr. line
 * /post/hash               - add hashes in post to seen map, one hash pr. line
-* /unseen/value/\<value\>    - remove value from seen map
-* /unseen/hash/\<hash\>      - remove hash from seen map
+* /unseen/value/\<value\>    - remove value (string) from seen map
+* /unseen/hash/\<hash\>      - remove hash (sha256) from seen map
 * /save                    - save state to statefile
 * /load                    - load state from (last) saved statefile
 * /expire/first/\<limit\>    - remove all entries with firstseen < limit (unixtime)
