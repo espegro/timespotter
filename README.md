@@ -24,3 +24,12 @@ Keep track of hash value, first seen, last seen and count.
 * /check/hash/<hash>      - check if hash is seen
 * /info                   - list info
 * /dump                   - dump all entries
+
+## DNS
+
+Values can be queried by DNS.
+
+Query: <0-31>.<32-63>.some.random.name
+  
+If found, return 127.0.0.1, if not SERVFAIL
+  
