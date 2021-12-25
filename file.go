@@ -38,6 +38,10 @@ func (t *Hashmap) Save(filename string) error {
 
 // Loadstate
 func (t *Hashmap) Load(filename string) error {
+	// Lock hash while loading
+	maplock.Lock()
+	defer maplock.Unlock()
+
 	// Open file
 	fi, err := os.Open(filename)
 	if err != nil {
@@ -49,6 +53,7 @@ func (t *Hashmap) Load(filename string) error {
 	// Make new gzip reader
 	fz, err := gzip.NewReader(fi)
 	if err != nil {
+		log.Printf("Unable to create gzip reader: %v\n", filename)
 		return err
 	}
 	defer fz.Close()
@@ -62,6 +67,5 @@ func (t *Hashmap) Load(filename string) error {
 		return err
 	}
 	return nil
-
 }
 
