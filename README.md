@@ -4,6 +4,20 @@ First seen / last seen web service based on sha256
 Values is stored in memory, saved to disk with SIGHUP or /save API call.
 Keep track of hash value, first seen, last seen and count.
 
+```
+Usage of ./timespotter:
+  -address string
+        listen address (default "127.0.0.1")
+  -dnsport string
+        dns port (default "5300")
+  -port string
+        listen port (default "5000")
+  -state string
+        statefile name (default "timespotter.state")
+```
+State is saved as gzip'ed GOB.
+State will be saved if interupt is caught or if /save endpoint is called.
+
 
 # API
 
