@@ -375,8 +375,6 @@ func dumphandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 
 func savehandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	maplock.Lock()
-	defer maplock.Unlock()
 	gmap.Save(config.StateName)
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/json")
@@ -384,8 +382,6 @@ func savehandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 func loadhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	maplock.Lock()
-	defer maplock.Unlock()
 	gmap.Load(config.StateName)
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/json")
