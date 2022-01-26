@@ -125,6 +125,8 @@ func main() {
 	mux.POST("/expire/last/:limit", expirelasthandler)
 	mux.GET("/check/value/:value", checkhandler)
 	mux.GET("/check/hash/:value", checkbyhashhandler)
+	// Method to allow logging of access of link httpX://<url>/linkspotter/<sha256>
+	mux.GET("/linkspotter/:value", seenbyhashhandler)
 	mux.GET("/info", infohandler)
 	mux.GET("/dump", dumphandler)
 
