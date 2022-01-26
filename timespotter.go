@@ -154,7 +154,7 @@ func seenbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	datavalue := string(p.ByName("value"))
 	datavalue = strings.ToLower(datavalue)
 	bytes, err := hex.DecodeString(datavalue)
-	if ( len(datavalue) < 64 || err != nil ) {
+	if ( len(datavalue) == 64 && err != nil ) {
 		w.WriteHeader(500)
 		fmt.Fprintf(w, "Error decoding hash!\n")
 		return
