@@ -141,6 +141,8 @@ func main() {
 }
 
 // Handler functions
+
+// Record sha256 hash of single value
 func seenhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Get value
 	datavalue := string(p.ByName("value"))
@@ -149,6 +151,7 @@ func seenhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	seenbyhash(hash, w)
 }
 
+// Record single sha256
 func seenbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Get hashvalue and encode to [32]byte
 	datavalue := string(p.ByName("value"))
@@ -192,11 +195,12 @@ func seenbyhash(hash [32]byte, w http.ResponseWriter) {
 	fmt.Fprintf(w, "\"last\": \"%v\"\n}\n", last)
 }
 
+// Record sha256 of multiple values, one string pr line
 func posthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Lock global map
 	maplock.Lock()
 	defer maplock.Unlock()
-	// Clode Body after exit to avoid memory leak
+	// Close Body after exit to avoid memory leak
 	defer r.Body.Close()
 	// Read body and split on lines
 	resbody, _ := ioutil.ReadAll(r.Body)
@@ -228,6 +232,7 @@ func posthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	log.Printf("OK, added %v values to map\n", count)
 }
 
+// Record multiple sha256 values, one hash pr line
 func postbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Lock global map
 	maplock.Lock()
@@ -269,12 +274,14 @@ func postbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	log.Printf("OK, added %v values to map\n", count)
 }
 
+// Remove sha256 from spotted values, by string
 func unseenhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	datavalue := string(p.ByName("value"))
 	hash := sha256.Sum256([]byte(datavalue))
 	unseenbyhash(hash, w)
 }
 
+// Remove sha256 from spotted values
 func unseenbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	datavalue := string(p.ByName("value"))
 	datavalue = strings.ToLower(datavalue)
@@ -299,6 +306,7 @@ func unseenbyhash(hash [32]byte, w http.ResponseWriter) {
 	fmt.Fprintf(w, "{\n\"status\": \"OK\"\n}\n")
 }
 
+// Check if value is in spotted values, by string
 func checkhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	maplock.Lock()
 	defer maplock.Unlock()
@@ -321,6 +329,7 @@ func checkhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 }
 
+// Check if sha256 is in spotted values
 func checkbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	maplock.Lock()
 	defer maplock.Unlock()
@@ -351,6 +360,7 @@ func checkbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Par
 
 }
 
+// Dump nr of values spotted
 func infohandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	maplock.Lock()
 	defer maplock.Unlock()
@@ -363,6 +373,7 @@ func infohandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"keys\": \"%v\"\n}\n", count)
 }
 
+// Dump all spotted values
 func dumphandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	maplock.Lock()
 	defer maplock.Unlock()
@@ -375,7 +386,7 @@ func dumphandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-
+// Save spotted values to statefile
 func savehandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	gmap.Save(config.StateName)
 	w.WriteHeader(200)
@@ -383,6 +394,7 @@ func savehandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprintf(w, "{\n\"status\": \"OK\"\n}\n")
 }
 
+// Load values from statefile
 func loadhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	gmap.Load(config.StateName)
 	w.WriteHeader(200)
