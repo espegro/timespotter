@@ -32,6 +32,9 @@ State will be saved if interupt is caught or if /save endpoint is called.
 * /load                    - load state from (last) saved statefile
 * /expire/first/\<limit\>    - remove all entries with firstseen < limit (unixtime)
 * /expire/last/\<limit\>     - remove all entries with lastseen < limit  (unixtime)
+* /override/first/\<hash\>/\<time\>  - override first timestamp for hash
+* /override/last/\<hash\>/\<time\>  - override last timestamp for hash
+* /override/count/\<hash\>/\<count\>  - override count value for hash
 
 ## GET
 * /check/value/\<value\>    - check if value is seen
