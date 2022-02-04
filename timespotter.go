@@ -36,9 +36,9 @@ var maplock = &sync.Mutex{}
 
 // Hashelements
 type HashElement struct {
-	First uint64
-	Last  uint64
-	Count uint64
+	First int
+	Last  int
+	Count int
 }
 
 type Hashmap map[[32]byte]HashElement
@@ -123,12 +123,18 @@ func main() {
 	mux.POST("/load", loadhandler)
 	mux.POST("/expire/first/:limit", expirefirsthandler)
 	mux.POST("/expire/last/:limit", expirelasthandler)
+	// Overridehandlers to correct values
+	mux.POST("/override/first/:hash/:time", overridefirsthandler)
+	mux.POST("/override/last/:hash/:time", overridelasthandler)
+	mux.POST("/override/count/:hash/:count", overridecounthandler)
+	// Check values
 	mux.GET("/check/value/:value", checkhandler)
 	mux.GET("/check/hash/:value", checkbyhashhandler)
 	// Method to allow logging of access of link httpX://<url>/linkspotter/<sha256>
 	mux.GET("/linkspotter/:value", seenbyhashhandler)
 	mux.GET("/info", infohandler)
 	mux.GET("/dump", dumphandler)
+
 
 	// Start server process
 	server := http.Server{
@@ -171,7 +177,7 @@ func seenbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 // Helper for seenhandler and seenbyhashhandler
 func seenbyhash(hash [32]byte, w http.ResponseWriter) {
 	// Get current unix time
-	atime := uint64(time.Now().Unix())
+	atime := int(time.Now().Unix())
 	// Lock global map
 	maplock.Lock()
 	defer maplock.Unlock()
@@ -210,7 +216,7 @@ func posthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for _, line := range lines {
 		if len(string(line)) > 0 {
 			// Update entry if line length > 0
-			atime := uint64(time.Now().Unix())
+			atime := int(time.Now().Unix())
 			datavalue := string(line)
 			hash := sha256.Sum256([]byte(datavalue))
 			first := gmap[hash].First
@@ -247,7 +253,7 @@ func postbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	for _, line := range lines {
 		if len(string(line)) > 0 {
 			// If length > 0, add hash to seen
-			atime := uint64(time.Now().Unix())
+			atime := int(time.Now().Unix())
 			datavalue := string(line)
 			datavalue = strings.ToLower(datavalue)
 			bytes, err := hex.DecodeString(datavalue)
@@ -347,10 +353,10 @@ func checkbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Par
 		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"found\": true,\n")
-		fmt.Fprintf(w, "\"first\": \"%v\"\n", val.First)
-		fmt.Fprintf(w, "\"last\": \"%v\"\n", val.Last)
-		fmt.Fprintf(w, "\"count\": \"%v\"\n", val.Count)
-		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
+		fmt.Fprintf(w, "\"first\": \"%v\",\n", val.First)
+		fmt.Fprintf(w, "\"last\": \"%v\",\n", val.Last)
+		fmt.Fprintf(w, "\"count\": \"%v\",\n", val.Count)
+		fmt.Fprintf(w, "\"hash\": \"%x\",\n", hash)
 		fmt.Fprintf(w, "}\n")
 	} else {
 		w.WriteHeader(404)
@@ -409,7 +415,7 @@ func expirefirsthandler(w http.ResponseWriter, r *http.Request, p httprouter.Par
 	expirevalue, _ := strconv.Atoi(string(p.ByName("limit")))
 	count := 0
 	for i := range gmap {
-		if gmap[i].First > uint64(expirevalue) {
+		if gmap[i].First > expirevalue {
 			delete(gmap, i)
 			count = count + 1
 		}
@@ -426,7 +432,7 @@ func expirelasthandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	expirevalue, _ := strconv.Atoi(string(p.ByName("limit")))
 	count := 0
 	for i := range gmap {
-		if gmap[i].Last > uint64(expirevalue) {
+		if gmap[i].Last > expirevalue {
 			delete(gmap, i)
 			count = count + 1
 		}
@@ -435,3 +441,132 @@ func expirelasthandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	fmt.Fprintf(w, "{\n\"status\": \"OK\",")
 	fmt.Fprintf(w, "\"expired\": \"%v\"\n}\n", count)
 }
+
+
+// Override first value for sha256
+func overridefirsthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Get hashvalue and encode to [32]byte
+	hashvalue := string(p.ByName("hash"))
+	hashvalue = strings.ToLower(hashvalue)
+	bytes, err := hex.DecodeString(hashvalue)
+	if !( len(hashvalue) == 64 && err == nil ) {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding hash!\n")
+		return
+	}
+	var hash [32]byte
+	copy(hash[:], bytes)
+
+	newtime, err := strconv.Atoi(string(p.ByName("time")))
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding time!\n")
+		return
+	}
+
+	if val, ok := gmap[hash]; ok {
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"found\": true,\n")
+		fmt.Fprintf(w, "\"first\": \"%v\",\n", newtime)
+		fmt.Fprintf(w, "\"oldfirst\": \"%v\",\n", val.First)
+		fmt.Fprintf(w, "\"last\": \"%v\",\n", val.Last)
+		fmt.Fprintf(w, "\"count\": \"%v\",\n", val.Count)
+		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
+		fmt.Fprintf(w, "}\n")
+
+		last := gmap[hash].Last
+		count := gmap[hash].Count
+		gmap[hash] = HashElement{newtime, last, count}
+	} else {
+		w.WriteHeader(404)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"NOT FOUND\",\n\"found\": false\n}\n")
+	}
+}
+
+
+// Override last value for sha256
+func overridelasthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Get hashvalue and encode to [32]byte
+	hashvalue := string(p.ByName("hash"))
+	hashvalue = strings.ToLower(hashvalue)
+	bytes, err := hex.DecodeString(hashvalue)
+	if !( len(hashvalue) == 64 && err == nil ) {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding hash!\n")
+		return
+	}
+	var hash [32]byte
+	copy(hash[:], bytes)
+
+	newtime, err := strconv.Atoi(string(p.ByName("time")))
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding time!\n")
+		return
+	}
+
+	if val, ok := gmap[hash]; ok {
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"found\": true,\n")
+		fmt.Fprintf(w, "\"first\": \"%v\",\n", val.First)
+		fmt.Fprintf(w, "\"last\": \"%v\",\n", newtime)
+		fmt.Fprintf(w, "\"oldfirst\": \"%v\",\n", val.Last)
+		fmt.Fprintf(w, "\"count\": \"%v\",\n", val.Count)
+		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
+		fmt.Fprintf(w, "}\n")
+
+		first := gmap[hash].First
+		count := gmap[hash].Count
+		gmap[hash] = HashElement{first, newtime, count}
+	} else {
+		w.WriteHeader(404)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"NOT FOUND\",\n\"found\": false\n}\n")
+	}
+}
+
+// Override count value for sha256
+func overridecounthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Get hashvalue and encode to [32]byte
+	hashvalue := string(p.ByName("hash"))
+	hashvalue = strings.ToLower(hashvalue)
+	bytes, err := hex.DecodeString(hashvalue)
+	if !( len(hashvalue) == 64 && err == nil ) {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding hash!\n")
+		return
+	}
+	var hash [32]byte
+	copy(hash[:], bytes)
+
+	newcount, err := strconv.Atoi(string(p.ByName("count")))
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Error decoding count!\n")
+		return
+	}
+
+	if val, ok := gmap[hash]; ok {
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"found\": true,\n")
+		fmt.Fprintf(w, "\"first\": \"%v\",\n", val.First)
+		fmt.Fprintf(w, "\"last\": \"%v\",\n", val.Last)
+		fmt.Fprintf(w, "\"count\": \"%v\",\n", newcount)
+		fmt.Fprintf(w, "\"oldcount\": \"%v\",\n", val.Count)
+		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
+		fmt.Fprintf(w, "}\n")
+
+		first := gmap[hash].First
+		last := gmap[hash].Last
+		gmap[hash] = HashElement{first, last, newcount}
+	} else {
+		w.WriteHeader(404)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, "{\n\"status\": \"NOT FOUND\",\n\"found\": false\n}\n")
+	}
+}
+
