@@ -48,7 +48,7 @@ var gmap = make(Hashmap)
 
 func main() {
 	// Set up logging to syslog
-	logwriter, err := syslog.New(syslog.LOG_NOTICE, "tulip")
+	logwriter, err := syslog.New(syslog.LOG_NOTICE, "timespotter")
 	if err == nil {
 		log.SetOutput(logwriter)
 	}
@@ -237,7 +237,7 @@ func postbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Para
 	// Lock global map
 	maplock.Lock()
 	defer maplock.Unlock()
-	// Clode Body after exit to avoid memory leak
+	// Close Body after exit to avoid memory leak
 	defer r.Body.Close()
 	// Read body and split on line
 	resbody, _ := ioutil.ReadAll(r.Body)
