@@ -322,9 +322,9 @@ func checkhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, "{\n\"status\": \"OK\",\n\"found\": true,\n")
-		fmt.Fprintf(w, "\"first\": \"%v\"\n", val.First)
-		fmt.Fprintf(w, "\"last\": \"%v\"\n", val.Last)
-		fmt.Fprintf(w, "\"count\": \"%v\"\n", val.Count)
+		fmt.Fprintf(w, "\"first\": \"%v\",\n", val.First)
+		fmt.Fprintf(w, "\"last\": \"%v\",\n", val.Last)
+		fmt.Fprintf(w, "\"count\": \"%v\",\n", val.Count)
 		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
 		fmt.Fprintf(w, "}\n")
 	} else {
@@ -356,7 +356,7 @@ func checkbyhashhandler(w http.ResponseWriter, r *http.Request, p httprouter.Par
 		fmt.Fprintf(w, "\"first\": \"%v\",\n", val.First)
 		fmt.Fprintf(w, "\"last\": \"%v\",\n", val.Last)
 		fmt.Fprintf(w, "\"count\": \"%v\",\n", val.Count)
-		fmt.Fprintf(w, "\"hash\": \"%x\",\n", hash)
+		fmt.Fprintf(w, "\"hash\": \"%x\"\n", hash)
 		fmt.Fprintf(w, "}\n")
 	} else {
 		w.WriteHeader(404)
