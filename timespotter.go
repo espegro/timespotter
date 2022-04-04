@@ -412,7 +412,7 @@ func loadhandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func expirefirsthandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	maplock.Lock()
 	defer maplock.Unlock()
-	expirevalue, _ := strconv.Atoi(string(p.ByName("limit")))
+	expirevalue, err := strconv.Atoi(string(p.ByName("limit")))
 	if err != nil {
 		w.WriteHeader(500)
 		fmt.Fprintf(w, "Error decoding limit!\n")
