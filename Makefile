@@ -6,7 +6,7 @@ GOGET=$(GOCMD) get
 
 all:clean timespotter
 
-tulip:
+timespotter:
 	$(GOBUILD) timespotter.go dnssrv.go file.go 
 
 clean:
