@@ -19,6 +19,42 @@ State is saved as gzip'ed GOB.
 State will be saved if interupt is caught or if /save endpoint is called.
 
 
+# Example usage
+```
+[root@host ~]# curl  "http://127.0.0.1:5000/info"
+{
+"status": "OK",
+"keys": "29508"
+}
+[root@host ~]# curl  -X POST "http://127.0.0.1:5000/seen/test"
+404 page not found
+[root@cert-mgmt04 ~]# curl  -X POST "http://127.0.0.1:5000/seen/value/test"
+{
+"status": "OK",
+"hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+"count": "2",
+"first": "1649145977",
+"last": "1668017778"
+}
+[root@host ~]# curl  "http://127.0.0.1:5000/check/value/test"
+{
+"status": "OK",
+"found": true,
+"first": "1649145977",
+"last": "1668017778",
+"count": "2",
+"hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+}
+[root@host ~]# curl  "http://127.0.0.1:5000/check/value/test2"
+{
+"status": "NOT FOUND",
+"found": false
+}   
+[root@host ~]# echo -n test | sha256sum 
+9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08  -
+```
+
+
 # API
 
 ## POST
