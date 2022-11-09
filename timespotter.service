@@ -1,0 +1,14 @@
+[Unit]
+Description=timespotter service
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+User=someuser
+WorkingDirectory=/site/timespotter/
+ExecStart=/site/timespotter/timespotter -state /site/timespotter/state/statefile
+
+[Install]
+WantedBy=multi-user.target
